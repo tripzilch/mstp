@@ -31,6 +31,12 @@ This is so much faster it's not even funny, and I feel kinda stupid for not tryi
 
 The FFT convolutions also allowed me to use (flat) circular convolution kernels instead of Gaussian ones, which is the way it was implemented in the article. AFAIK, this produces sharper details than Gaussian kernels.
 
+## The rest
+
+Leftover bits from various experiments during development. Probably not very useful, included for completeness and educational value. But really, the code in `mstp-fft.py` is where you want to be.
+
+There's some output images in the `output images` folder. These include various high-resolution renders, as well as some experimental stuff: My face in wobbly Turing-patterns, and some images from when I used the MSTP as a procedural texture generation for a platformer game I was working on at the time.
+
 # Colour
 
 So how did I do the colours? I keep two buffers.
@@ -42,3 +48,15 @@ I also keep a separate RGB colour buffer called `c`. In the MSTP algorithm, ever
 Finally, the `z` buffer and the `c` buffer are simply multiplied together, for the output image.
 
 And that's it!
+
+# License stuff
+
+Short bit about usage rights and license stuff: I selected "No License" for this Github repo, which means the regular copyright laws hold (like they always do per default).
+
+As far as I'm concerned, if you just use the code and the explanations to learn and build your own implementation that's just great and awesome. Please do let me know if you make anything cool! :)
+
+If you use the code to play with and experiment with for personal projects, that's also perfectly cool, even if you're not learning :-P
+
+However if you intend to *include* the code (or my writing, or images) in a commercial project, you should send me message first. I'll probably be perfectly fine with that as well, I just want to know about it *beforehand*, in this scenario.
+
+Don't use the picture of my face for anything. It's my face. Mine.
