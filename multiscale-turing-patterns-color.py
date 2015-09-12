@@ -15,7 +15,7 @@ def box3(x, sigma, output, mode='wrap'):
 
     The relationship between sigma and "n" (the number used to
     determine the box blur sizes) is as follows:
-    
+
     sigma(n) = 0.345586 * n + 0.525521
     n(sigma) = 2.893638 * sigma - 1.520667
 
@@ -25,10 +25,10 @@ def box3(x, sigma, output, mode='wrap'):
     """
     n = int(round(2.893638 * sigma - 1.520667))
     a, b, c = 1 + 2 * (n / 3), 1 + 2 * ((n + 1) / 3), 1 + 2 * ((n + 2) / 3)
-    nd.uniform_filter(x, a, mode=mode, output=output) 
+    nd.uniform_filter(x, a, mode=mode, output=output)
     nd.uniform_filter(output, b, mode=mode, output=output)
     nd.uniform_filter(output, c, mode=mode, output=output)
-    
+
 def boxG(x, sigma, output, mode='wrap'):
     """Gaussian filter if sigma < 5 else box3 filter."""
     f = nd.gaussian_filter if sigma < 5 else box3
@@ -36,29 +36,29 @@ def boxG(x, sigma, output, mode='wrap'):
 
 def box2(x, sigma, output, mode='wrap'):
     """Approximation of Gaussian filter by 2 box blurs.
-    
+
     sigma(n) = 0.436589 * n + 0.441425
     n(sigma) = 2.290485 * sigma - 1.011077
-    
-    See box3 documentation for further details.    
+
+    See box3 documentation for further details.
     """
     n = int(round(2.290485 * sigma - 1.011077))
     a, b = 1 + 2 * (n / 2), 1 + 2 * ((n + 1) / 2)
-    nd.uniform_filter(x, a, mode=mode, output=output) 
+    nd.uniform_filter(x, a, mode=mode, output=output)
     nd.uniform_filter(output, b, mode=mode, output=output)
-    
+
 def symmetry_xform(z, N=3, mode='wrap'):
     """Blends input with random rotated version for N-fold symmetry."""
     return (z + nd.rotate(z, randint(1, N) * 360 / N, reshape=False, mode=mode, order=1)) * 0.5
-    
-    
-    
+
+
+
 class MSTP(object):
     """Class for representing and running Multiscale Turing Patterns.
 
     See [lnk] and [link] for explanation.
     """
-    
+
     def __init__(self,
             shape=[300,300],
             ra=[ 64, 24,  9,  3,  1],
@@ -94,13 +94,13 @@ class MSTP(object):
         "Filter function."
         self._filter = boxG
         "Colour buffer update speed."
-        self._dc = .04 
+        self._dc = .04
         # init these as instance variables so they don't have to be
         # allocated on each call to self.step()
         self._tmp = zeros_like(self.z)
         self._min_var = zeros_like(self.z).astype(int)
         self._variance = zeros([len(ra)] + list(shape))
-        
+
     def reset(self):
         """Re-initializes greyscale and colour buffers."""
         self.z = rand(*self.z.shape)
@@ -123,19 +123,25 @@ class MSTP(object):
         # calc minimum variance
         min_var = argmin(variance ** 2, axis=0)
         # update greyscale buffer z
-#        self.z += choose(min_var, self.dt[_XY] * sign(variance)) * speed
-        self.z += speed * .01 * sum(sign(variance)/variance**2,axis=0) / sum(1/variance**2,axis=0)
+        self.z += choose(min_var, self.dt[_XY] * sign(variance)) * speed                             ## (1) see 2015 NOTE below
+        # self.z += speed * .01 * sum(sign(variance)/variance**2,axis=0) / sum(1/variance**2,axis=0) ## (2) see 2015 NOTE below
         # normalize
         mi, ma = self.z.min(), self.z.max()
         self.z = (self.z - mi) / (ma - mi)
         # update colour buffer c
-        # self.c = (1-self._dc) * self.c + self._dc * choose(min_var[...,newaxis], self.pal[:,newaxis,newaxis,:])
-    
+        self.c = (1-self._dc) * self.c + self._dc * choose(min_var[...,newaxis], self.pal[:,newaxis,newaxis,:])
+
+        ## 2015 NOTE: This code is old (2011) and I think I messed up somewhere, in the sense that the last version of the code
+        ## might not work properly with the colour buffer. I *think* that z-update rule (1) is the proper formula to go with the
+        ## colour buffer. Update rule (2) updates all the scales at once, inverse-weighted by their variance, which doesn't work
+        ## with the colour buffer which only keeps track of the scale with minimum variance. However I presume that if you're
+        ## just going for a greyscale image, z-update rule (2) converges slightly faster, maybe.
+
     def rgb_image(self):
         """Return RGB image from greyscale buffer z combined with colour buffer c."""
         z3 = self.z[:,:,newaxis]
         return z3 * self.c
-    
+
     def run(self, n=1, speed=1.0, rnd=0, filename=None, start_frame=0, verbose=True, crop=None):
         """Advance the multiscale Turing pattern by n timesteps.
 
@@ -181,11 +187,11 @@ class MSTP(object):
             return rr
         return 'MSTP(shape=%s,\n    ra=%s,\n    ri=%s,\n    dt=%s,\n    pal=%s)' % (
                 r(self.z.shape), r(self.ra), r(self.ri), r(self.dt), r(self.pal))
-                
+
     def __call__(self):
         display(IM(self.rgb_image()))
 
-def shade(N=10, *colors):    
+def shade(N=10, *colors):
     """Interpolates colors to construct a smooth palette.
 
     N -- number of entries in palette
@@ -193,7 +199,7 @@ def shade(N=10, *colors):
     """
     return interp1d(linspace(0, 1, len(colors)), colors, axis=0)(linspace(0, 1, N)).round(2)
 #    cc = array(colors)
-#    
+#
 #    x = frange(0, 1, npts=N)
 #         linspace(0, 1, len(colors))
 #    xp = frange(0, 1, npts=len(colors))
@@ -207,10 +213,10 @@ def rseq(start=0.0, stop=1.0, N=10, randomness=0.5):
 
     start, stop -- range, inclusive. like frange
     N -- number of points
-    randomness -- 0 is completely regular, equivalent to 
+    randomness -- 0 is completely regular, equivalent to
         frange(start, stop, npts=N). 1 is completely random (but
         still monotonically increasing).
-    
+
     Examples:
     >>> rseq(1, 4, N=4, randomness=0.1)     #doctest: +SKIP
     array([ 1.04117853,  1.95102362,  2.98915379,  3.95667588])
@@ -218,10 +224,10 @@ def rseq(start=0.0, stop=1.0, N=10, randomness=0.5):
     array([ 1.21479822,  1.37313434,  2.58511447,  3.63824901])
     """
 
-    return (randomness * sort(start + (stop - start) * rand(N)) 
-        + (1 - randomness) * frange(start, stop, npts=N))   
+    return (randomness * sort(start + (stop - start) * rand(N))
+        + (1 - randomness) * frange(start, stop, npts=N))
 
-def run_variations(filename, N=50, N_scales=7, shape=(512, 512), 
+def run_variations(filename, N=50, N_scales=7, shape=(512, 512),
         steps=[(10,4.0), (20,1.0)], display_inline=False, min_radius=1.5,
         max_radius=90.0):
     """Generates random MSTP parameter configurations and renders them.
@@ -229,21 +235,21 @@ def run_variations(filename, N=50, N_scales=7, shape=(512, 512),
     filename -- path and filename for pylab.imsave to write output to.
         must include '%s' or '%03d' or similar for numbering.
     N -- number of variations to generate.
-    N_scales -- number of scales, length of ra, ri, dt and pal MSTP 
+    N_scales -- number of scales, length of ra, ri, dt and pal MSTP
         parameters.
     shape -- dimensions of MSTP and output images
     steps -- list of (N_steps, relative_speed) tuples, defaults to 10
         steps at 4x speed followed by 20 steps at 1x speed.
-    min_radius, max_radius -- lower and upper limits of activator radius 
-    display_inline -- call IPython QTConsole function display to 
+    min_radius, max_radius -- lower and upper limits of activator radius
+    display_inline -- call IPython QTConsole function display to
         display intermediate results inline.
 
-    TODO: more parameters to adjust other particulars of random 
-        configuration generation. 
+    TODO: more parameters to adjust other particulars of random
+        configuration generation.
 
     """
 
-    colors = [[1, 0, 0], [0, 1, 0], [0, 0, 0.9], [1, 1, 0], 
+    colors = [[1, 0, 0], [0, 1, 0], [0, 0, 0.9], [1, 1, 0],
               [1, 0, 1], [0, 1, 1], [1, 1, 1], [1, 0.6, 0]]
     perm = np.random.permutation
     for n in range(N):
@@ -258,7 +264,7 @@ def run_variations(filename, N=50, N_scales=7, shape=(512, 512),
         dt = (.01 * frange(1, N_scales) ** 0.8).round(3)
         wt = (1.33 + arctan(5 * (rand(N_scales) - .5))).round(2)
         m = MSTP(shape, ra=ra, ri=ri, dt=dt, wt=wt, pal=pal)
-        
+
         print '\n-------- rendering image', filename % n
         print m
         # display(HTML(' '.join('<span style="background:rgb(%d,%d,%d)">(o_O)</span> ' % tuple(255*k) for k in array(pal))))
@@ -282,7 +288,7 @@ class HTML(object):
         self.html=html
     def _repr_html_(self):
         return self.html
-    
+
 class IM(object):
     """Helper class for IPython QTConsole to display arrays inline."""
     def __init__(self, ar):

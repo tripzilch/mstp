@@ -89,15 +89,16 @@ class MSTP(object):
             if not variance[n,...].any(): # ?? adjust for rounding error ??
                 variance[n,...] += 1000.0
         # calc minimum variance
-#        min_var = argmin(variance ** 2, axis=0)
+        min_var = argmin(variance ** 2, axis=0)
         # update greyscale buffer z
-#        self.z += choose(min_var, self.dt[_XY] * sign(variance)) * speed
-        self.z += speed * .01 * sum(sign(variance)/variance**2, axis=0) / sum(1/variance**2,axis=0)
+        ## !! see 2015 NOTE in multiscale-turing-patterns-color.py
+        self.z += choose(min_var, self.dt[_XY] * sign(variance)) * speed
+        # self.z += speed * .01 * sum(sign(variance)/variance**2, axis=0) / sum(1/variance**2,axis=0)
         # normalize
         self.z -= self.z.min()
         self.z /= self.z.max()
         # update colour buffer c
-        # self.c = (1-self._dc) * self.c + self._dc * choose(min_var[...,newaxis], self.pal[:,newaxis,newaxis,:])
+        self.c = (1-self._dc) * self.c + self._dc * choose(min_var[...,newaxis], self.pal[:,newaxis,newaxis,:])
 
     def rgb_image(self):
         """Return RGB image from greyscale buffer z combined with colour buffer c."""
