@@ -29,7 +29,7 @@ Generates MSTPs in colour, but uses FFT to perform the convolutions.
 This is so much faster it's not even funny, and I feel kinda stupid for not trying this method right away. I was kind of skeptical about how fast FFT would be, it felt like overkill in a way. But the important factor here is that the convolution kernels are rather *large*, and that's when the
 `O(N log(N))` time complexity of FFT really shines in contrast to the `O(N*M)` or `O(N^2)` complexity of a regular convolution. This was definitely a learning experience for me.
 
-The FFT convolutions also allowed me to use (flat) circular convolution kernels instead of Gaussian ones, which is the way it was implemented in the article. AFAIK, this produces sharper details than Gaussian kernels.
+The FFT convolutions also allowed me to use (flat) circular convolution kernels instead of Gaussian ones, which is the way it was implemented in the article. From what I remember, this produces sharper details than Gaussian kernels.
 
 ## The rest
 
